@@ -297,8 +297,8 @@ function incremental_transform(component: TaggedListComponent): Component {
             // : { tag: "binary_operator_combination", operator: operator, left: list_ref(operands, 0), right: list_ref(operands, 1) };
     }
     function transform_conditional(cond: TaggedListConditional): Conditional {
-        return list(head(cond), transform_expression(list_ref(cond, 1)), transform_component(list_ref(cond, 2)), transform_component(list_ref(cond, 3)));
-        // return { tag: head(cond), predicate: transform_expression(list_ref(cond, 1)), consequent: transform_component(list_ref(cond, 2)), alternative: transform_component(list_ref(cond, 3)) };
+        // return list(head(cond), transform_expression(list_ref(cond, 1)), transform_component(list_ref(cond, 2)), transform_component(list_ref(cond, 3)));
+        return { tag: head(cond), predicate: transform_expression(list_ref(cond, 1)), consequent: transform_component(list_ref(cond, 2)), alternative: transform_component(list_ref(cond, 3)) };
     }
     function transform_lambda(lam: TaggedListLambda): Lambda {
         return list(head(lam), map(transform_component, list_ref(lam, 1)), transform_component(list_ref(lam, 2)));
@@ -604,17 +604,17 @@ function return_expression(component: ReturnStatement) {
 }
 
 function is_conditional(component: Component): component is Conditional {
-    return is_tagged_list(component, "conditional_expression") ||
-           is_tagged_list(component, "conditional_statement");
+    return is_tagged_list_record(component, "conditional_expression") ||
+           is_tagged_list_record(component, "conditional_statement");
 }
 function conditional_predicate(component: Conditional): Expression {
-   return list_ref(component, 1);
+   return component.predicate;
 }
 function conditional_consequent(component: Conditional): Component {
-   return list_ref(component, 2);
+   return component.consequent;
 }
 function conditional_alternative(component: Conditional): Component {
-   return list_ref(component, 3);
+   return component.alternative;
 }
 
 function is_sequence(stmt: Component): stmt is Sequence {
@@ -668,8 +668,11 @@ function second_operand(component: Binary): Expression {
 }
 
 function make_application(function_expression: Name, argument_expressions: List<Expression>): Application {
-    return list("application",
-                function_expression, argument_expressions);
+    return {
+        tag: "application",
+        function_expression: function_expression,
+        arguments: argument_expressions
+    }
 }
 
 function operator_combination_to_application(component: OperatorCombination): Application {
@@ -683,13 +686,13 @@ function operator_combination_to_application(component: OperatorCombination): Ap
 }
 
 function is_application(component: Component): component is Application {
-   return is_tagged_list(component, "application");
+   return is_tagged_list_record(component, "application");
 }
 function function_expression(component: Application): Name {
-   return head(tail(component));
+   return (component.function_expression as Name);
 }
 function arg_expressions(component: Application): List<Expression> {
-   return head(tail(tail(component)));
+   return component.arguments;
 }
 
 // functions from SICP JS 4.1.3
