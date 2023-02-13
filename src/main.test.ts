@@ -36,3 +36,11 @@ test("function declaration and call", () => {
     const result = execute(the_global_environment, func + func_call);
     expect(result).toBe(32);
 });
+
+test("Lambda expression", () => {
+    const lambda = "const afun = (x) => x * x; "
+    const lambda_call = "afun(3);";
+
+    const result = execute(the_global_environment, lambda + lambda_call);
+    expect(result).toBe(9);
+})
