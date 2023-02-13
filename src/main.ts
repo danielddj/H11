@@ -301,8 +301,8 @@ function incremental_transform(component: TaggedListComponent): Component {
         return { tag: head(cond), predicate: transform_expression(list_ref(cond, 1)), consequent: transform_component(list_ref(cond, 2)), alternative: transform_component(list_ref(cond, 3)) };
     }
     function transform_lambda(lam: TaggedListLambda): Lambda {
-        return list(head(lam), map(transform_component, list_ref(lam, 1)), transform_component(list_ref(lam, 2)));
-        // return { tag: "lambda_expression", parameters: map(transform_name, list_ref(lam, 1)), body: transform_component(list_ref(lam, 2)) };
+        // return list(head(lam), map(transform_component, list_ref(lam, 1)), transform_component(list_ref(lam, 2)));
+        return { tag: "lambda_expression", parameters: map(transform_name, list_ref(lam, 1)), body: transform_component(list_ref(lam, 2)) };
     }
     function transform_sequence(seq: TaggedListSequence): Sequence {
         return list(head(seq), map(transform_component, list_ref(seq, 1)));
@@ -317,8 +317,8 @@ function incremental_transform(component: TaggedListComponent): Component {
         // return { tag: "return_statement", return_expression: transform_expression(list_ref(ret, 1)) };
     }
     function transform_function_declaration(fun: TaggedListFunction): Function {
-        return list("function_declaration", transform_name(list_ref(fun, 1)), map(transform_name, list_ref(fun, 2)), transform_component(list_ref(fun, 3)));
-        // return { tag: "function_declaration", name: transform_name(list_ref(fun, 1)), parameters: map(transform_name, list_ref(fun, 2)), body: transform_component(list_ref(fun, 3)) };
+        // list("function_declaration", transform_name(list_ref(fun, 1)), map(transform_name, list_ref(fun, 2)), transform_component(list_ref(fun, 3)));
+        return { tag: "function_declaration", name: transform_name(list_ref(fun, 1)), parameters: map(transform_name, list_ref(fun, 2)), body: transform_component(list_ref(fun, 3)) };
     }
     function transform_declaration(decl: TaggedListDeclaration): Declaration {
         return list("constant_declaration", transform_name(list_ref(decl, 1)), transform_expression(list_ref(decl, 2)));
@@ -561,32 +561,32 @@ function make_constant_declaration(name: Name, value_expression: Expression): Co
 }
 
 function is_lambda_expression(component: Component): component is Lambda {
-    return is_tagged_list(component, "lambda_expression");
+    return component.tag === "lambda_expression";
 }
 function lambda_parameter_symbols(component: Lambda): List<Symbol> {
-    return map(symbol_of_name, head(tail(component)));
+    return map(symbol_of_name, component.parameters);
 }
 function lambda_body(component: Lambda): Component {
-    return head(tail(tail(component)));
+    return component.body;
 }
 
 function make_lambda_expression(parameters: List<Name>, body: Component): Lambda {
-    return list("lambda_expression", parameters, body);
+    return { tag: "lambda_expression", parameters: parameters, body: body };
 }
 
 function is_function_declaration(component: Component): component is Function {
-    return is_tagged_list(component, "function_declaration");
+    return component.tag === "function_declaration";
 }
 function function_declaration_name(component: Function): Name {
     // return list_ref(component, 1);
-    return head(tail(component));
+    return component.name;
 }
 function function_declaration_parameters(component: Function): List<Name> {
     // return list_ref(component, 2);
-    return head(tail(tail(component)));
+    return component.parameters;
 }
 function function_declaration_body(component: Function): Component {
-    return list_ref(component, 3);
+    return component.body;
 }
 function function_decl_to_constant_decl(component: Function): Constant {
     return make_constant_declaration(
