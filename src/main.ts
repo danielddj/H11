@@ -18,7 +18,7 @@ type TaggedListSequence = ["sequence", [List<TaggedListStatement>, null]];
 type TaggedListDeclaration = TaggedListConstant | TaggedListFunction | TaggedListVariable;
 type TaggedListFunction = ["function_declaration", [Name, [List<Name>, [TaggedListComponent, null]]]];
 type TaggedListConstant = ["constant_declaration", [Name, [TaggedListExpression, null]]];
-type TaggedListVariable= ["variable_declaration", [Name, [TaggedListExpression, null]]];
+type TaggedListVariable = ["variable_declaration", [Name, [TaggedListExpression, null]]];
 type TaggedListAssignment = ["assignment", [Name, [TaggedListExpression, null]]];
 type TaggedListReturnStatement = ["return_statement", [TaggedListExpression, null]];
 
@@ -305,8 +305,8 @@ function incremental_transform(component: TaggedListComponent): Component {
         return { tag: "lambda_expression", parameters: map(transform_name, list_ref(lam, 1)), body: transform_component(list_ref(lam, 2)) };
     }
     function transform_sequence(seq: TaggedListSequence): Sequence {
-        return list(head(seq), map(transform_component, list_ref(seq, 1)));
-        // return { tag: "sequence", statements: map(transform_component, list_ref(seq, 1)) };
+        // return list(head(seq), map(transform_component, list_ref(seq, 1)));
+        return { tag: "sequence", statements: map(transform_component, list_ref(seq, 1)) };
     }
     function transform_block(block: TaggedListBlock): Block {
         return list(head(block), map(transform_component, list_ref(block, 1)));
@@ -623,10 +623,10 @@ function conditional_alternative(component: Conditional): Component {
 }
 
 function is_sequence(stmt: Component): stmt is Sequence {
-   return is_tagged_list(stmt, "sequence");
+   return is_tagged_list_record(stmt, "sequence");
 }
 function sequence_statements(stmt: Sequence): List<Statement> { 
-   return head(tail(stmt));
+   return stmt.statements;
 }
 function first_statement(stmts: List<Statement>): Statement {
    return head(stmts);
