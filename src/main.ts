@@ -277,16 +277,16 @@ function incremental_transform(component: TaggedListComponent): Component {
 
     // Transformers
     function transform_name(name: TaggedListName): Name {
-        return name as unknown as Name;
-        //return { tag: "name", symbol: head(tail(name)) };
+        //return name as unknown as Name;
+        return { tag: "name", symbol: head(tail(name)) };
     }
     function transform_literal(literal: TaggedListLiteral): Literal {
-        return literal as unknown as Literal;
-        // return { tag: "literal", value: head(tail(literal)) };
+        //return literal as unknown as Literal;
+        return { tag: "literal", value: head(tail(literal)) };
     }
     function transform_application(app: TaggedListApplication): Application {
-        return list(head(app), transform_expression(head(tail(app))), map(tagged_list_to_record, head(tail(tail(app)))));
-        // return { tag: "application", function_expression: transform_expression(head(tail(app))), arguments: map(tagged_list_to_record, head(tail(tail(app)))) };
+        //return list(head(app), transform_expression(head(tail(app))), map(tagged_list_to_record, head(tail(tail(app)))));
+        return { tag: "application", function_expression: transform_expression(head(tail(app))), arguments: map(tagged_list_to_record, head(tail(tail(app)))) };
     }
     function transform_operator_combination(op: TaggedListOperatorCombination): OperatorCombination {
         return append(list(head(op), head(tail(op)), map(transform_component, tail(tail(op)))));
@@ -500,15 +500,19 @@ function is_tagged_list(component: any, the_tag: string): boolean {
     return is_pair(component) && head(component) === the_tag;
 }
 
+function is_tagged_list_record(component: any, the_tag: string): boolean {
+    return component.tag === the_tag;
+}
+
 function is_literal(component: Component): component is Literal {
-    return is_tagged_list(component, "literal");
+    return is_tagged_list_record(component, "literal");
 }
 function literal_value(component: Literal): Value {
-    return head(tail(component));
+    return component.value;
 }
 
 function make_literal(value: Value): Literal {
-    return list("literal", value);
+    return { tag: "literal", value: value};
 }
 
 function is_name(component: Component): component is Name {
@@ -516,11 +520,11 @@ function is_name(component: Component): component is Name {
 }
 
 function make_name(symbol: Symbol): Name {
-    return list("name", symbol);
+    return { tag: "name", symbol: symbol };
 }
 
 function symbol_of_name(component: Name): Symbol {
-    return head(tail(component));
+    return component.symbol;
 }
 
 function is_assignment(component: Component): component is Assignment {
@@ -658,8 +662,9 @@ function second_operand(component: Binary): Expression {
 }
 
 function make_application(function_expression: Name, argument_expressions: List<Expression>): Application {
-    return list("application",
-                function_expression, argument_expressions);
+    return {    tag: "application",
+                function_expression: function_expression,
+                arguments: argument_expressions};
 }
 
 function operator_combination_to_application(component: OperatorCombination): Application {
