@@ -313,8 +313,8 @@ function incremental_transform(component: TaggedListComponent): Component {
         // return { tag: "block", body: map(transform_statement, list_ref(block, 1)) };
     }
     function transform_return_statement(ret: TaggedListReturnStatement): ReturnStatement {
-        return list(head(ret), transform_expression(list_ref(ret, 1)));
-        // return { tag: "return_statement", return_expression: transform_expression(list_ref(ret, 1)) };
+        // return list(head(ret), transform_expression(list_ref(ret, 1)));
+        return { tag: "return_statement", return_expression: transform_expression(list_ref(ret, 1)) };
     }
     function transform_function_declaration(fun: TaggedListFunction): Function {
         return list("function_declaration", transform_name(list_ref(fun, 1)), map(transform_name, list_ref(fun, 2)), transform_component(list_ref(fun, 3)));
@@ -601,10 +601,11 @@ function function_decl_to_constant_decl(component: Function): Constant {
 }
 
 function is_return_statement(component: Component): component is ReturnStatement {
-   return is_tagged_list(component, "return_statement");
+   return is_tagged_list_record(component, "return_statement");
 }
+
 function return_expression(component: ReturnStatement) {
-   return head(tail(component));
+   return component.return_expression;
 }
 
 function is_conditional(component: Component): component is Conditional {
