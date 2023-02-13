@@ -457,7 +457,7 @@ function scan_out_declarations(component: Component): List<Symbol> {
                         null,
                         map(scan_out_declarations,
                             sequence_statements(component)))
-           : is_declaration((component))
+           : is_declaration(component)
            ? list(declaration_symbol(component))
            : null;
 }
@@ -672,9 +672,9 @@ function operator_combination_to_application(component: OperatorCombination): Ap
     return is_unary_operator_combination(component)
            ? make_application(make_name(operator),
                               list(first_operand(component)))
-           : (make_application(make_name(operator),
+           : make_application(make_name(operator),
                               list(first_operand(component),
-                                   second_operand(component))));
+                                   second_operand(component)));
 }
 
 function is_application(component: Component): component is Application {
@@ -697,7 +697,7 @@ function is_truthy(x: any): boolean {
 function is_falsy(x: any): boolean { return ! is_truthy(x); }
 
 function make_function(parameters: List<Symbol>, body: Component, env: Environment): CompoundFunction {
-    return list("compound_function", parameters, body, env); incremental_transform
+    return list("compound_function", parameters, body, env);
 }
 function is_compound_function(f: Value): f is CompoundFunction {
     return is_tagged_list(f, "compound_function");
@@ -714,7 +714,7 @@ function function_environment(f: CompoundFunction): Environment {
     return head(tail(tail(tail(f))));
 }
 
-function make_return_value(content: Value): ReturnValue { 
+function make_return_value(content: Value): ReturnValue {
     return list("return_value", content);
 }
 function is_return_value(value: Value): value is ReturnValue {
@@ -878,8 +878,8 @@ function driver_loop(env: Environment, history: string): void {
     if (is_null(input)) {
         display("", history + "\n--- session end ---\n");
     } else {
-        const program = incremental_transform(parse(input));
-        const locals = (scan_out_declarations(program));
+        const program = parse(input);
+        const locals = scan_out_declarations(program);
         const unassigneds = list_of_unassigned(locals);
         const program_env = extend_environment(
                                 locals, unassigneds, env);
@@ -895,5 +895,15 @@ function driver_loop(env: Environment, history: string): void {
 
 "metacircular evaluator loaded";
 
-driver_loop(the_global_environment, "--- session start ---");
+//driver_loop(the_global_environment, "--- session start ---");
+
+export function execute(env: Environment, input: string): Value {
+    const program = parse(input);
+    const locals = scan_out_declarations(program);
+    const unassigneds = list_of_unassigned(locals);
+    const program_env = extend_environment(
+                                locals, unassigneds, env);
+    const output = evaluate(program, program_env);
+    return output;
+}
 
