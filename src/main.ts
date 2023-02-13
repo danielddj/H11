@@ -317,8 +317,8 @@ function incremental_transform(component: TaggedListComponent): Component {
         // return { tag: "return_statement", return_expression: transform_expression(list_ref(ret, 1)) };
     }
     function transform_function_declaration(fun: TaggedListFunction): Function {
-        // list("function_declaration", transform_name(list_ref(fun, 1)), map(transform_name, list_ref(fun, 2)), transform_component(list_ref(fun, 3)));
-        return { tag: "function_declaration", name: transform_name(list_ref(fun, 1)), parameters: map(transform_name, list_ref(fun, 2)), body: transform_component(list_ref(fun, 3)) };
+        return list("function_declaration", transform_name(list_ref(fun, 1)), map(transform_name, list_ref(fun, 2)), transform_component(list_ref(fun, 3)));
+        // return { tag: "function_declaration", name: transform_name(list_ref(fun, 1)), parameters: map(transform_name, list_ref(fun, 2)), body: transform_component(list_ref(fun, 3)) };
     }
     function transform_declaration(decl: TaggedListDeclaration): Declaration {
         return list("constant_declaration", transform_name(list_ref(decl, 1)), transform_expression(list_ref(decl, 2)));
@@ -561,32 +561,36 @@ function make_constant_declaration(name: Name, value_expression: Expression): Co
 }
 
 function is_lambda_expression(component: Component): component is Lambda {
-    return component.tag === "lambda_expression";
+    return is_tagged_list_record(component, "lambda_expression");
 }
 function lambda_parameter_symbols(component: Lambda): List<Symbol> {
     return map(symbol_of_name, component.parameters);
 }
 function lambda_body(component: Lambda): Component {
-    return component.body;
+    return (component.body);
 }
 
 function make_lambda_expression(parameters: List<Name>, body: Component): Lambda {
-    return { tag: "lambda_expression", parameters: parameters, body: body };
+    return {
+        tag: "lambda_expression",
+        parameters: parameters,
+        body: body
+    }
 }
 
 function is_function_declaration(component: Component): component is Function {
-    return component.tag === "function_declaration";
+    return is_tagged_list(component, "function_declaration");
 }
 function function_declaration_name(component: Function): Name {
     // return list_ref(component, 1);
-    return component.name;
+    return head(tail(component));
 }
 function function_declaration_parameters(component: Function): List<Name> {
     // return list_ref(component, 2);
-    return component.parameters;
+    return head(tail(tail(component)));
 }
 function function_declaration_body(component: Function): Component {
-    return component.body;
+    return list_ref(component, 3);
 }
 function function_decl_to_constant_decl(component: Function): Constant {
     return make_constant_declaration(
