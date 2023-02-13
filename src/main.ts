@@ -289,20 +289,20 @@ function incremental_transform(component: TaggedListComponent): Component {
         return { tag: "application", function_expression: transform_expression(head(tail(app))), arguments: map(tagged_list_to_record, head(tail(tail(app)))) };
     }
     function transform_operator_combination(op: TaggedListOperatorCombination): OperatorCombination {
-        return append(list(head(op), head(tail(op))), map(transform_component, tail(tail(op))));
-        // const operator: Operator = head(tail(op));
-        // const operands: List<Expression> = map(transform_expression, tail(tail(op)));
-        // return head(op) === "unary_operator_combination"
-            // ? { tag: "unary_operator_combination", operator: operator, operand: list_ref(operands, 0) }
-            // : { tag: "binary_operator_combination", operator: operator, left: list_ref(operands, 0), right: list_ref(operands, 1) };
+        //return append(list(head(op), head(tail(op))), map(transform_component, tail(tail(op))));
+         const operator: Operator = head(tail(op));
+         const operands: List<Expression> = map(transform_expression, tail(tail(op)));
+         return head(op) === "unary_operator_combination"
+             ? { tag: "unary_operator_combination", operator: operator, operand: list_ref(operands, 0) }
+             : { tag: "binary_operator_combination", operator: operator, left: list_ref(operands, 0), right: list_ref(operands, 1) };
     }
     function transform_conditional(cond: TaggedListConditional): Conditional {
         // return list(head(cond), transform_expression(list_ref(cond, 1)), transform_component(list_ref(cond, 2)), transform_component(list_ref(cond, 3)));
         return { tag: head(cond), predicate: transform_expression(list_ref(cond, 1)), consequent: transform_component(list_ref(cond, 2)), alternative: transform_component(list_ref(cond, 3)) };
     }
     function transform_lambda(lam: TaggedListLambda): Lambda {
-        return list(head(lam), map(transform_component, list_ref(lam, 1)), transform_component(list_ref(lam, 2)));
-        // return { tag: "lambda_expression", parameters: map(transform_name, list_ref(lam, 1)), body: transform_component(list_ref(lam, 2)) };
+        // return list(head(lam), map(transform_component, list_ref(lam, 1)), transform_component(list_ref(lam, 2)));
+        return { tag: "lambda_expression", parameters: map(transform_name, list_ref(lam, 1)), body: transform_component(list_ref(lam, 2)) };
     }
     function transform_sequence(seq: TaggedListSequence): Sequence {
         return list(head(seq), map(transform_component, list_ref(seq, 1)));
@@ -652,19 +652,21 @@ function is_operator_combination(component: Component): component is OperatorCom
            is_binary_operator_combination(component);
 }
 function is_unary_operator_combination(component: Component): component is Unary {
-    return is_tagged_list(component, "unary_operator_combination");
+    return is_tagged_list_record(component, "unary_operator_combination");
 }
 function is_binary_operator_combination(component: Component): component is Binary {
-    return is_tagged_list(component, "binary_operator_combination");
+    return is_tagged_list_record(component, "binary_operator_combination");
 }
 function operator_symbol(component: OperatorCombination): Operator {
-    return head(tail(component));
+    return component.operator;
 }
 function first_operand(component: OperatorCombination): Expression {
-    return head(tail(tail(component)));
+    return is_binary_operator_combination(component)
+            ? component.left
+            : component.operand;
 }
 function second_operand(component: Binary): Expression {
-    return head(tail(tail(tail(component))));
+    return component.right;
 }
 
 function make_application(function_expression: Name, argument_expressions: List<Expression>): Application {
