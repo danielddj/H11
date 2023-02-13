@@ -377,7 +377,7 @@ function incremental_transform(component: TaggedListComponent): Component {
 
 // functions from SICP JS 4.1.1
 
-function evaluate(component: Component, env: Environment): Value {
+export function evaluate(component: Component, env: Environment): Value {
     return is_literal(component)
            ? literal_value(component)
            : is_name(component)
@@ -842,7 +842,7 @@ function setup_environment(): Environment {
                               the_empty_environment);
 }
 
-const the_global_environment = setup_environment();
+export const the_global_environment = setup_environment();
 
 function to_string(object: any): string {
     return is_compound_function(object)
