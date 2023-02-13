@@ -2,7 +2,7 @@ import * as PromptSync from "prompt-sync";
 
 const prompt: PromptSync.Prompt = PromptSync({sigint:true});
 
-import { is_boolean, set_head, is_pair, list_ref, apply_in_underlying_javascript, pair, stringify, is_null, error, math_abs, math_PI, math_E, display, map, accumulate, length, parse, append, head, list, tail, List, Pair} from 'sicp';
+import { is_boolean, set_head, is_pair, list_ref, apply_in_underlying_javascript, pair, stringify, is_null, error, math_abs, math_PI, math_E, display, map, accumulate, length, parse, append, head, list, tail } from 'sicp';
 
 type Environment = List<Frame>;
 type Frame = Pair<List<Symbol>, List<Value>>;
@@ -192,7 +192,7 @@ function tagged_list_to_record(component: TaggedListComponent): Component {
             ? transform_assignment(exp)
             : error(exp, "Not a statement!");
     }
-
+    
     function transform_expression(exp: TaggedListExpression): Expression {
         return is_literal(exp)
             ? transform_literal(exp)
@@ -265,7 +265,7 @@ function incremental_transform(component: TaggedListComponent): Component {
         return is_unary_operator_combination(component) ||
             is_binary_operator_combination(component);
     }
-    function is_unary_operator_combination(component: TaggedListComponent): component is TaggedListUnary {
+    function is_unary_operator_combination(component: TaggedListComponent): component is TaggedListUnary { 
         return is_tagged_list(component, "unary_operator_combination");
     }
     function is_binary_operator_combination(component: TaggedListComponent): component is TaggedListBinary {
@@ -285,11 +285,11 @@ function incremental_transform(component: TaggedListComponent): Component {
         return { tag: "literal", value: head(tail(literal)) };
     }
     function transform_application(app: TaggedListApplication): Application {
-        //return list(head(app), transform_expression(head(tail(app))), map(tagged_list_to_record, head(tail(tail(app)))));
+        // return list(head(app), transform_expression(head(tail(app))), map(tagged_list_to_record, head(tail(tail(app)))));
         return { tag: "application", function_expression: transform_expression(head(tail(app))), arguments: map(tagged_list_to_record, head(tail(tail(app)))) };
     }
     function transform_operator_combination(op: TaggedListOperatorCombination): OperatorCombination {
-        return append(list(head(op), head(tail(op)), map(transform_component, tail(tail(op)))));
+        return append(list(head(op), head(tail(op))), map(transform_component, tail(tail(op))));
         // const operator: Operator = head(tail(op));
         // const operands: List<Expression> = map(transform_expression, tail(tail(op)));
         // return head(op) === "unary_operator_combination"
@@ -368,7 +368,6 @@ function incremental_transform(component: TaggedListComponent): Component {
             ? transform_lambda(exp)
             : error(exp, "Not an expression!");
     }
-
     return transform_component(component);
 }
 
@@ -378,7 +377,7 @@ function incremental_transform(component: TaggedListComponent): Component {
 // functions from SICP JS 4.1.1
 
 export function evaluate(component: Component, env: Environment): Value {
-    return is_literal(component)
+    return is_literal_record(component)
            ? literal_value(component)
            : is_name(component)
            ? lookup_symbol_value(symbol_of_name(component), env)
@@ -501,26 +500,33 @@ function is_tagged_list(component: any, the_tag: string): boolean {
 }
 
 function is_tagged_list_record(component: any, the_tag: string): boolean {
-    return component.tag === the_tag;
+    return  component.tag === the_tag;
 }
 
-function is_literal(component: Component): component is Literal {
+function is_literal_record(component: Component): component is Literal {
     return is_tagged_list_record(component, "literal");
 }
+
 function literal_value(component: Literal): Value {
     return component.value;
 }
 
 function make_literal(value: Value): Literal {
-    return { tag: "literal", value: value};
+    return {
+        tag: "literal",
+        value: value,
+    };
 }
 
 function is_name(component: Component): component is Name {
-    return is_tagged_list(component, "name");
+    return is_tagged_list_record(component, "name");
 }
 
 function make_name(symbol: Symbol): Name {
-    return { tag: "name", symbol: symbol };
+    return {
+        tag: "name",
+        symbol: symbol,
+    };
 }
 
 function symbol_of_name(component: Name): Symbol {
@@ -662,9 +668,8 @@ function second_operand(component: Binary): Expression {
 }
 
 function make_application(function_expression: Name, argument_expressions: List<Expression>): Application {
-    return {    tag: "application",
-                function_expression: function_expression,
-                arguments: argument_expressions};
+    return list("application",
+                function_expression, argument_expressions);
 }
 
 function operator_combination_to_application(component: OperatorCombination): Application {
@@ -878,7 +883,7 @@ function driver_loop(env: Environment, history: string): void {
     if (is_null(input)) {
         display("", history + "\n--- session end ---\n");
     } else {
-        const program = parse(input);
+        const program = incremental_transform(parse(input));
         const locals = scan_out_declarations(program);
         const unassigneds = list_of_unassigned(locals);
         const program_env = extend_environment(
@@ -898,7 +903,7 @@ function driver_loop(env: Environment, history: string): void {
 //driver_loop(the_global_environment, "--- session start ---");
 
 export function execute(env: Environment, input: string): Value {
-    const program = parse(input);
+    const program =  incremental_transform(parse(input));
     const locals = scan_out_declarations(program);
     const unassigneds = list_of_unassigned(locals);
     const program_env = extend_environment(
