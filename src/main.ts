@@ -377,7 +377,7 @@ function incremental_transform(component: TaggedListComponent): Component {
 
 // functions from SICP JS 4.1.1
 
-function evaluate(component: Component, env: Environment): Value {
+export function evaluate(component: Component, env: Environment): Value {
     return is_literal(component)
            ? literal_value(component)
            : is_name(component)
@@ -842,7 +842,7 @@ function setup_environment(): Environment {
                               the_empty_environment);
 }
 
-const the_global_environment = setup_environment();
+export const the_global_environment = setup_environment();
 
 function to_string(object: any): string {
     return is_compound_function(object)
@@ -890,4 +890,15 @@ function driver_loop(env: Environment, history: string): void {
 
 "metacircular evaluator loaded";
 
-driver_loop(the_global_environment, "--- session start ---");
+//driver_loop(the_global_environment, "--- session start ---");
+
+export function execute(env: Environment, input: string): Value {
+    const program = parse(input);
+    const locals = scan_out_declarations(program);
+    const unassigneds = list_of_unassigned(locals);
+    const program_env = extend_environment(
+                                locals, unassigneds, env);
+    const output = evaluate(program, program_env);
+    return output;
+}
+
