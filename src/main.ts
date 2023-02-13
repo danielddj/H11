@@ -18,7 +18,7 @@ type TaggedListSequence = ["sequence", [List<TaggedListStatement>, null]];
 type TaggedListDeclaration = TaggedListConstant | TaggedListFunction | TaggedListVariable;
 type TaggedListFunction = ["function_declaration", [Name, [List<Name>, [TaggedListComponent, null]]]];
 type TaggedListConstant = ["constant_declaration", [Name, [TaggedListExpression, null]]];
-type TaggedListVariable= ["variable_declaration", [Name, [TaggedListExpression, null]]];
+type TaggedListVariable = ["variable_declaration", [Name, [TaggedListExpression, null]]];
 type TaggedListAssignment = ["assignment", [Name, [TaggedListExpression, null]]];
 type TaggedListReturnStatement = ["return_statement", [TaggedListExpression, null]];
 
