@@ -2,7 +2,7 @@ import * as PromptSync from "prompt-sync";
 
 const prompt: PromptSync.Prompt = PromptSync({sigint:true});
 
-import { is_boolean, set_head, is_pair, list_ref, apply_in_underlying_javascript, pair, stringify, is_null, error, math_abs, math_PI, math_E, display, map, accumulate, length, parse, append, head, list, tail } from 'sicp';
+import { is_boolean, set_head, is_pair, list_ref, apply_in_underlying_javascript, pair, stringify, is_null, error, math_abs, math_PI, math_E, display, map, accumulate, length, parse, append, head, list, tail, List, Pair} from 'sicp';
 
 type Environment = List<Frame>;
 type Frame = Pair<List<Symbol>, List<Value>>;
@@ -192,7 +192,7 @@ function tagged_list_to_record(component: TaggedListComponent): Component {
             ? transform_assignment(exp)
             : error(exp, "Not a statement!");
     }
-    
+
     function transform_expression(exp: TaggedListExpression): Expression {
         return is_literal(exp)
             ? transform_literal(exp)
