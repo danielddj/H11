@@ -305,28 +305,28 @@ function incremental_transform(component: TaggedListComponent): Component {
         return { tag: "lambda_expression", parameters: map(transform_name, list_ref(lam, 1)), body: transform_component(list_ref(lam, 2)) };
     }
     function transform_sequence(seq: TaggedListSequence): Sequence {
-        return list(head(seq), map(transform_component, list_ref(seq, 1)));
-        // return { tag: "sequence", statements: map(transform_component, list_ref(seq, 1)) };
+        // return list(head(seq), map(transform_component, list_ref(seq, 1)));
+        return { tag: "sequence", statements: map(transform_component, list_ref(seq, 1)) };
     }
     function transform_block(block: TaggedListBlock): Block {
-        return list(head(block), map(transform_component, list_ref(block, 1)));
-        // return { tag: "block", body: map(transform_statement, list_ref(block, 1)) };
+        // return list(head(block), map(transform_component, list_ref(block, 1)));
+        return { tag: "block", body: map(transform_statement, list_ref(block, 1)) };
     }
     function transform_return_statement(ret: TaggedListReturnStatement): ReturnStatement {
         // return list(head(ret), transform_expression(list_ref(ret, 1)));
         return { tag: "return_statement", return_expression: transform_expression(list_ref(ret, 1)) };
     }
     function transform_function_declaration(fun: TaggedListFunction): Function {
-        return list("function_declaration", transform_name(list_ref(fun, 1)), map(transform_name, list_ref(fun, 2)), transform_component(list_ref(fun, 3)));
-        // return { tag: "function_declaration", name: transform_name(list_ref(fun, 1)), parameters: map(transform_name, list_ref(fun, 2)), body: transform_component(list_ref(fun, 3)) };
+        // return list("function_declaration", transform_name(list_ref(fun, 1)), map(transform_name, list_ref(fun, 2)), transform_component(list_ref(fun, 3)));
+        return { tag: "function_declaration", name: transform_name(list_ref(fun, 1)), parameters: map(transform_name, list_ref(fun, 2)), body: transform_component(list_ref(fun, 3)) };
     }
     function transform_declaration(decl: TaggedListDeclaration): Declaration {
-        return list("constant_declaration", transform_name(list_ref(decl, 1)), transform_expression(list_ref(decl, 2)));
-        // return { tag: "constant_declaration", name: transform_name(list_ref(decl, 1)), initialiser: transform_expression(list_ref(decl, 2)) };
+        // return list("constant_declaration", transform_name(list_ref(decl, 1)), transform_expression(list_ref(decl, 2)));
+        return { tag: "constant_declaration", name: transform_name(list_ref(decl, 1)), initialiser: transform_expression(list_ref(decl, 2)) };
     }
     function transform_assignment(assg: TaggedListAssignment): Assignment {
-        return list("assignment", transform_name(list_ref(assg, 1)), transform_component(list_ref(assg, 2)));
-        // return { tag: "assignment", name: transform_name(list_ref(assg, 1)), right_hand_side: transform_component(list_ref(assg, 2)) };
+        // return list("assignment", transform_name(list_ref(assg, 1)), transform_component(list_ref(assg, 2)));
+        return { tag: "assignment", name: transform_name(list_ref(assg, 1)), right_hand_side: transform_expression(list_ref(assg, 2)) };
     }
 
     function transform_component(component: TaggedListComponent): Component {
@@ -534,30 +534,38 @@ function symbol_of_name(component: Name): Symbol {
 }
 
 function is_assignment(component: Component): component is Assignment {
-    return is_tagged_list(component, "assignment");
+    return is_tagged_list_record(component, "assignment");
 }
 function assignment_symbol(component: Assignment): Symbol {
-    return head(tail(head(tail(component))));
+    return component.name.symbol;
 }
 function assignment_value_expression(component: Assignment): Expression {
-    return head(tail(tail(component)));
+    return component.right_hand_side;
 }
 
 function is_declaration(component: Component): component is Declaration {
-    return is_tagged_list(component, "constant_declaration") ||
-           is_tagged_list(component, "variable_declaration") ||
-           is_tagged_list(component, "function_declaration");
+    return is_tagged_list_record(component, "constant_declaration") ||
+           is_tagged_list_record(component, "variable_declaration") ||
+           is_tagged_list_record(component, "function_declaration");
 }
 
 function declaration_symbol(component: Declaration): Symbol {
-    return symbol_of_name(list_ref(component, 1));
+    return symbol_of_name(component.name);
 }
 function declaration_value_expression(component: Declaration): Expression {
-    return list_ref(component, 2);
+    return is_function_declaration(component)
+            ? component.parameters
+            : is_null(component)
+            ? error
+            : component.initialiser;
 }
 
 function make_constant_declaration(name: Name, value_expression: Expression): Constant {
-    return list("constant_declaration", name, value_expression);
+    return {
+        tag: "constant_declaration",
+        name: name,
+        initialiser: value_expression,
+    };
 }
 
 function is_lambda_expression(component: Component): component is Lambda {
@@ -579,18 +587,18 @@ function make_lambda_expression(parameters: List<Name>, body: Component): Lambda
 }
 
 function is_function_declaration(component: Component): component is Function {
-    return is_tagged_list(component, "function_declaration");
+    return is_tagged_list_record(component, "function_declaration");
 }
 function function_declaration_name(component: Function): Name {
     // return list_ref(component, 1);
-    return head(tail(component));
+    return component.name;
 }
 function function_declaration_parameters(component: Function): List<Name> {
     // return list_ref(component, 2);
-    return head(tail(tail(component)));
+    return component.parameters;
 }
 function function_declaration_body(component: Function): Component {
-    return list_ref(component, 3);
+    return component.body;
 }
 function function_decl_to_constant_decl(component: Function): Constant {
     return make_constant_declaration(
@@ -623,10 +631,10 @@ function conditional_alternative(component: Conditional): Component {
 }
 
 function is_sequence(stmt: Component): stmt is Sequence {
-   return is_tagged_list(stmt, "sequence");
+   return is_tagged_list_record(stmt, "sequence");
 }
 function sequence_statements(stmt: Sequence): List<Statement> { 
-   return head(tail(stmt));
+   return stmt.statements;
 }
 function first_statement(stmts: List<Statement>): Statement {
    return head(stmts);
@@ -642,14 +650,17 @@ function is_last_statement(stmts: List<Statement>): boolean {
 }
 
 function is_block(component: Component): component is Block {
-    return is_tagged_list(component, "block");
+    return is_tagged_list_record(component, "block");
 }
 function block_body(component: Block): Component {
     return component.body;
 }
 
 function make_block(statement: Statement): Block {
-    return list("block", statement);
+    return {
+        tag: "block",
+        body: statement
+    };
 }
 
 function is_operator_combination(component: Component): component is OperatorCombination {
@@ -913,7 +924,7 @@ function driver_loop(env: Environment, history: string): void {
 //driver_loop(the_global_environment, "--- session start ---");
 
 export function execute(env: Environment, input: string): Value {
-    const program =  incremental_transform(parse(input));
+    const program =  tagged_list_to_record(parse(input));
     const locals = scan_out_declarations(program);
     const unassigneds = list_of_unassigned(locals);
     const program_env = extend_environment(
@@ -921,4 +932,3 @@ export function execute(env: Environment, input: string): Value {
     const output = evaluate(program, program_env);
     return output;
 }
-
