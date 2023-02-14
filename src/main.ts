@@ -178,7 +178,6 @@ function tagged_list_to_record(component: TaggedListComponent): Component {
     }
 
     function transform_statement(exp: TaggedListStatement): Statement {
-        console.log(exp)
         return is_sequence(exp)
             ? transform_sequence(exp)
             : is_block(exp)
