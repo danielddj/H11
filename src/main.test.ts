@@ -9,6 +9,14 @@ test("Factorial function", () => {
     expect(res).toBe(120);
 });
 
+test("Add function", () => {
+    const func = "function add_two(a, b) { return a + b; }";
+    const usage = "add_two(2, 6);"
+
+    const result = execute(the_global_environment, func + usage);
+    expect(result).toBe(8);
+});
+
 test("constant declaration and usage", () => {
     const constant_declaration = "const x = 512; x;"
 
@@ -43,15 +51,7 @@ test("Lambda expression", () => {
 
     const result = execute(the_global_environment, lambda + lambda_call);
     expect(result).toBe(9);
-})
-
-test("Add function", () => {
-    const func = "function add_two(a, b) { return a + b; }";
-    const usage = "add_two(2, 6);"
-
-    const result = execute(the_global_environment, func + usage);
-    expect(result).toBe(8);
-})
+});
 
 test("Assignment", () => {
     const declaration = "let a = 3; ";
@@ -60,4 +60,10 @@ test("Assignment", () => {
 
     const result = execute(the_global_environment, declaration + assignment + disp);
     expect(result).toBe(60);
-})
+});
+
+test("block test", () => {
+    const block = "{ { const y = 5; y; } }"
+    const result = execute(the_global_environment, block);
+    expect(result).toBe(5);
+});
