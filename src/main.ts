@@ -154,7 +154,7 @@ function tagged_list_to_record(component: TaggedListComponent): Component {
         return { tag: "sequence", statements: map(transform_component, list_ref(seq, 1)) };
     }
     function transform_block(block: TaggedListBlock): Block {
-        return { tag: "block", body: map(transform_statement, list_ref(block, 0)) };
+        return { tag: "block", body: head(map(transform_statement, tail(block))) };
     }
     function transform_return_statement(ret: TaggedListReturnStatement): ReturnStatement {
         return { tag: "return_statement", return_expression: transform_expression(list_ref(ret, 1)) };
@@ -178,6 +178,7 @@ function tagged_list_to_record(component: TaggedListComponent): Component {
     }
 
     function transform_statement(exp: TaggedListStatement): Statement {
+        console.log(exp)
         return is_sequence(exp)
             ? transform_sequence(exp)
             : is_block(exp)
@@ -190,7 +191,7 @@ function tagged_list_to_record(component: TaggedListComponent): Component {
             ? transform_declaration(exp)
             : is_assignment(exp)
             ? transform_assignment(exp)
-            : error(exp, "Not a statement!");
+            : error(exp, "Not a Statement!");
     }
     
     function transform_expression(exp: TaggedListExpression): Expression {
@@ -310,7 +311,7 @@ function incremental_transform(component: TaggedListComponent): Component {
     }
     function transform_block(block: TaggedListBlock): Block {
         // return list(head(block), map(transform_component, list_ref(block, 1)));
-        return { tag: "block", body: map(transform_statement, list_ref(block, 1)) };
+        return { tag: "block", body: map(transform_statement, head(tail(block))) };
     }
     function transform_return_statement(ret: TaggedListReturnStatement): ReturnStatement {
         // return list(head(ret), transform_expression(list_ref(ret, 1)));
