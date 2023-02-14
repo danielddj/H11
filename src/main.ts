@@ -69,7 +69,7 @@ function tagged_list_to_record(component: TaggedListComponent): Component {
         const tag = head(c);
         return tag === "block" || tag === "sequence" || 
             tag === "function_declaration" || tag === "constant_declaration" || tag === "assignment" || 
-            tag === "return_statement";
+            tag === "return_statement" || tag === "variable_declaration";
     }
     function is_expression(c: TaggedList): c is TaggedListExpression {
         const tag = head(c);
@@ -217,7 +217,7 @@ function incremental_transform(component: TaggedListComponent): Component {
         const tag = head(c);
         return tag === "block" || tag === "sequence" || 
             tag === "function_declaration" || tag === "constant_declaration" || tag === "assignment" || 
-            tag === "return_statement";
+            tag === "return_statement" || tag === "variable_declaration" ;
     }
     function is_expression(c: TaggedList): c is TaggedListExpression {
         const tag = head(c);
@@ -537,7 +537,7 @@ function is_assignment(component: Component): component is Assignment {
     return is_tagged_list_record(component, "assignment");
 }
 function assignment_symbol(component: Assignment): Symbol {
-    return component.name.symbol;
+    return (component.name).symbol;
 }
 function assignment_value_expression(component: Assignment): Expression {
     return component.right_hand_side;
@@ -904,7 +904,7 @@ function driver_loop(env: Environment, history: string): void {
     if (is_null(input)) {
         display("", history + "\n--- session end ---\n");
     } else {
-        const program = incremental_transform(parse(input));
+        const program = tagged_list_to_record(parse(input));
         const locals = scan_out_declarations(program);
         const unassigneds = list_of_unassigned(locals);
         const program_env = extend_environment(
@@ -932,3 +932,4 @@ export function execute(env: Environment, input: string): Value {
     const output = evaluate(program, program_env);
     return output;
 }
+
