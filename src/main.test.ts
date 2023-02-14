@@ -44,3 +44,20 @@ test("Lambda expression", () => {
     const result = execute(the_global_environment, lambda + lambda_call);
     expect(result).toBe(9);
 })
+
+test("Add function", () => {
+    const func = "function add_two(a, b) { return a + b; }";
+    const usage = "add_two(2, 6);"
+
+    const result = execute(the_global_environment, func + usage);
+    expect(result).toBe(8);
+})
+
+test("Assignment", () => {
+    const declaration = "let a = 3; ";
+    const assignment = "a = 60; ";
+    const disp = "a; ";
+
+    const result = execute(the_global_environment, declaration + assignment + disp);
+    expect(result).toBe(60);
+})
